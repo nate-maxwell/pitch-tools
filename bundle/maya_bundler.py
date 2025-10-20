@@ -79,9 +79,9 @@ def script_action(items: list[str]) -> None:
 
 
 def file_action(items: list[str]) -> None:
-    min_items = list(set(items))
-    for i in min_items:
-        subprocess.run(['explorer', '/select,', i])
+    t = Path(items[0])
+    folder = t.parent if t.is_file() else t.parent
+    subprocess.run(['explorer', folder.as_posix()])
 
 
 # -----Maya Wrapper------------------------------------------------------------
