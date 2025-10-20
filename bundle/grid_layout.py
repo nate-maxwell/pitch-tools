@@ -92,13 +92,16 @@ class GridLayout(QtWidgets.QGridLayout):
         return expected_col
 
     def _add_item(self, item: q_item, row: int, col: int) -> None:
-        # Always align the item to the top-left of its cell
         if isinstance(item, QtWidgets.QWidget):
-            self.addWidget(item, row, col,
-                           QtCore.Qt.AlignLeft | QtCore.Qt.AlignTop)
+            self.addWidget(
+                item, row, col,
+                QtCore.Qt.AlignmentFlag.AlignLeft | QtCore.Qt.AlignmentFlag.AlignTop
+            )
         elif isinstance(item, QtWidgets.QLayout):
-            self.addLayout(item, row, col,
-                           QtCore.Qt.AlignLeft | QtCore.Qt.AlignTop)
+            self.addLayout(
+                item, row, col,
+                QtCore.Qt.AlignmentFlag.AlignLeft | QtCore.Qt.AlignmentFlag.AlignTop
+            )
 
     def add_to_next_row(self, item: q_item) -> None:
         """Adds the QtWidget or QLayout item to the first column of the next
