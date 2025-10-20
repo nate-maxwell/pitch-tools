@@ -1,9 +1,7 @@
 """
-# Example Maya Bundle Window
+Example Maya Bundle Window
 
-* Description:
-
-    A demo of how the bundler can be used inside of maya.
+A demo of how the bundler can be used inside of maya.
 """
 
 

@@ -1,9 +1,7 @@
 """
-# Bundle Window
+Bundle Window
 
-* Description:
-
-    The primary bundle PySide window.
+The primary bundle PySide window.
 """
 
 

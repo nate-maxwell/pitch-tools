@@ -1,10 +1,8 @@
 """
-# Grid Layout Wrapper
+Grid Layout Wrapper
 
-* Description:
-
-    A wrapper for QtWidgets.QGridLayout that finds empty slots in rows and
-    columns.
+A thin wrapper around QtWidgets.QGridLayout that provides helpers to find
+empty rows or columns and automatically place widgets or sublayouts.
 """
 
 
@@ -14,10 +12,15 @@ from PySide6 import QtCore
 from PySide6 import QtWidgets
 
 
-q_item = Union[QtWidgets.QWidget, QtWidgets.QLayout]
+QItem = Union[QtWidgets.QWidget, QtWidgets.QLayout]
+ALIGN_TOP_LEFT = QtCore.Qt.AlignmentFlag.AlignLeft | QtCore.Qt.AlignmentFlag.AlignTop
 
 
 class GridLayout(QtWidgets.QGridLayout):
+    """Enhanced QGridLayout with convenience methods for sequential placement
+    and for finding empty rows or columns.
+    """
+
     def __init__(self) -> None:
         super().__init__()
         self.setContentsMargins(0, 0, 0, 0)
@@ -29,16 +32,16 @@ class GridLayout(QtWidgets.QGridLayout):
         self.setRowStretch(9999, 1)
         self.setColumnStretch(9999, 1)
 
-    def get_last_filled_row(self) -> int:
-        """Return the last row index that contains any items in the QGridLayout.
+    # -----Query Methods-------------------------------------------------------
 
-        This inspects all items in the layout and returns the highest row index
-        occupied by any widget or layout item. If the layout is empty, returns
-        -1.
+    def get_last_filled_row(self) -> int:
+        """Return the last row index containing any items.
+
+        Iterates over all layout items to determine the highest row index in
+        use.
 
         Returns:
-            The last (highest) row index that has any items, or -1 if none
-             exist.
+            int: The highest occupied row index, or -1 if the layout is empty.
         """
         if self.count() == 0:
             return -1
@@ -54,8 +57,7 @@ class GridLayout(QtWidgets.QGridLayout):
         return last_row
 
     def get_next_column(self, row: int) -> int:
-        """Return the next empty column index in the given row of a
-        QGridLayout.
+        """Return the next empty column index in the given row.
 
         This inspects all items occupying the specified row and determines the
         first available (unused) column index.
@@ -66,51 +68,32 @@ class GridLayout(QtWidgets.QGridLayout):
         Returns:
             The first unoccupied column index in the given row.
         """
-        if self is None or self.count() == 0:
-            return 0
-
-        occupied_columns: list[int] = []
-
+        occupied: set[int] = set()
         for i in range(self.count()):
             item_row, item_col, row_span, col_span = self.getItemPosition(i)
             if item_row <= row < item_row + row_span:
-                for c in range(item_col, item_col + col_span):
-                    if c not in occupied_columns:
-                        occupied_columns.append(c)
+                occupied.update(range(item_col, item_col + col_span))
+        for expected in range(max(occupied, default=-1) + 2):
+            if expected not in occupied:
+                return expected
+        return 0
 
-        if not occupied_columns:
-            return 0
+    # -----Insertion Methods---------------------------------------------------
 
-        occupied_columns.sort()
-
-        expected_col = 0
-        for c in occupied_columns:
-            if c != expected_col:
-                return expected_col
-            expected_col += 1
-
-        return expected_col
-
-    def _add_item(self, item: q_item, row: int, col: int) -> None:
+    def _add_item(self, item: QItem, row: int, col: int) -> None:
         if isinstance(item, QtWidgets.QWidget):
-            self.addWidget(
-                item, row, col,
-                QtCore.Qt.AlignmentFlag.AlignLeft | QtCore.Qt.AlignmentFlag.AlignTop
-            )
+            self.addWidget(item, row, col, ALIGN_TOP_LEFT)
         elif isinstance(item, QtWidgets.QLayout):
-            self.addLayout(
-                item, row, col,
-                QtCore.Qt.AlignmentFlag.AlignLeft | QtCore.Qt.AlignmentFlag.AlignTop
-            )
+            self.addLayout(item, row, col, ALIGN_TOP_LEFT)
 
-    def add_to_next_row(self, item: q_item) -> None:
+    def add_to_next_row(self, item: QItem) -> None:
         """Adds the QtWidget or QLayout item to the first column of the next
         row.
         """
         row = self.get_last_filled_row() + 1
         self._add_item(item, row, 0)
 
-    def add_to_next_column(self, item: q_item) -> None:
+    def add_to_next_column(self, item: QItem) -> None:
         """Adds the QtWidget or QLayout item to the next empty column of the
         last occupied row.
         """

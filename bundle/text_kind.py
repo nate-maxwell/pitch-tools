@@ -1,10 +1,8 @@
 """
-# String Looks Like
+String Looks Like
 
-* Description:
-
-    A collection of regular expressions to see if a string resembles any kind
-    of known expression.
+A collection of regular expressions to see if a string resembles any kind
+of known expression.
 """
 
 
