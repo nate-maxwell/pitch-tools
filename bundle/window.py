@@ -11,23 +11,7 @@ from typing import Callable
 from PySide6 import QtGui
 from PySide6 import QtWidgets
 
-import bundle.text_kind
 from bundle.grid_layout import GridLayout
-
-
-drop_func_signature = Callable[[str], None]
-"""The signature a bundle drop function should use.
-The drop function is what the bundle passes the dropped text to for execution.
-"""
-
-multi_line_types = (
-    bundle.text_kind.TextKind.FILE_PATHS,
-    bundle.text_kind.TextKind.MAYA_DAG_PATHS
-)
-"""Kinds of text in entries can exist on multiple lines.
-Something like python code is a string block that can span multiple lines but
-is a single entry, so it would not count.
-"""
 
 
 class BundleButton(QtWidgets.QWidget):
@@ -69,8 +53,12 @@ class BundleButton(QtWidgets.QWidget):
 
 class BundleWindow(QtWidgets.QMainWindow):
     """
-    The parent Bundle window for creating, storing, and recalling bundle
-    selections.
+    Top-level window for creating, storing, and recalling bundle selections.
+
+    Args:
+        button_factory (typing.Callable[[str], BundleButton]): Factory that
+            builds a button from dropped text. Return None to ignore drops.
+        parent (typing.Optional[QtWidgets.QMainWindow]): Optional parent window.
     """
 
     def __init__(
