@@ -1,8 +1,9 @@
 """
 String Looks Like
 
-A collection of regular expressions to see if a string resembles any kind
-of known expression.
+A collection of regular expressions and heuristics to determine whether a
+string resembles a known expression such as file paths, Maya DAG paths,
+or Python source code.
 """
 
 
@@ -10,6 +11,12 @@ import ast
 import enum
 import re
 from pathlib import Path
+
+
+_MAYA_SEGMENT_RX = r'[A-Za-z0-9_][A-Za-z0-9_:]*'
+_MAYA_PATH_RX = re.compile(rf'^\|?({_MAYA_SEGMENT_RX})(?:\|{_MAYA_SEGMENT_RX})*$')
+_WINDOWS_DRIVE_RX: re.Pattern[str] = re.compile(r'^[A-Za-z]:[\\/]')
+_UNC_RX: re.Pattern[str] = re.compile(r'^(?:\\\\|//)[^\\/\s]+[\\/]?')
 
 
 class TextKind(enum.Enum):
@@ -33,7 +40,7 @@ def _looks_like_windows_drive_path(line: str) -> bool:
     Returns:
         bool: Does path resemble windows drive path?
     """
-    return re.match(r'^[A-Za-z]:[\\/]', line) is not None
+    return _WINDOWS_DRIVE_RX.match(line) is not None
 
 
 def _looks_like_posix_path(line: str) -> bool:
@@ -53,7 +60,7 @@ def _looks_like_posix_path(line: str) -> bool:
 
 def _looks_like_unc_path(line: str) -> bool:
     # e.g. \\server\share\path or //server/share/path
-    return re.match(r'^(?:\\\\|//)[^\\/\s]+[\\/]?', line) is not None
+    return _UNC_RX.match(line) is not None
 
 
 def _has_pathlike_separators(line: str) -> bool:
@@ -62,11 +69,13 @@ def _has_pathlike_separators(line: str) -> bool:
 
 def looks_like_file_path(line: str) -> bool:
     """Heuristic for a single filesystem path.
+
     Args:
         line (str): The text to validate.
+
     Returns:
-        bool: Whether the line looks like an unc, posix, windows path, or some
-         other file system path type.
+        bool: True if the line resembles a Windows drive, UNC, or POSIX path,
+        or normalizes to a plausible path via pathlib (excluding bare filenames).
     """
     if not _has_pathlike_separators(line):
         return False
@@ -110,10 +119,6 @@ def looks_like_python_script(text: str) -> bool:
         return code_hint or '\n' in trimmed or len(trimmed.split()) > 3
     except SyntaxError:
         return False
-
-
-_MAYA_SEGMENT_RX = r'[A-Za-z0-9_][A-Za-z0-9_:]*'
-_MAYA_PATH_RX = re.compile(rf'^\|?({_MAYA_SEGMENT_RX})(?:\|{_MAYA_SEGMENT_RX})*$')
 
 
 def looks_like_maya_dag_path(line: str) -> bool:
