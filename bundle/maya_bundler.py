@@ -100,7 +100,6 @@ def button_factory(s: str) -> Optional[bundle.window.BundleButton]:
         entries = s.split('\n')
         action = file_action
     if text_kind == bundle.text_kind.TextKind.PYTHON_SCRIPT:
-        print('$$$$$$$$$$$$$$$$$$$$$$$$')
         icon = icons['python']
         entries = [s]
         action = script_action
