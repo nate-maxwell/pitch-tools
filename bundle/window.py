@@ -119,7 +119,6 @@ class BundleWindow(QtWidgets.QMainWindow):
         text = event.mimeData().text()
         button = self.button_factory(text)
         if button is None:
-            print('button was None')
             return
 
         if self._cur_col >= self._max_col:
